@@ -82,6 +82,7 @@
             background-color: #eaf5ff;
             border-left: 5px solid #3498db;
             font-size: 1.1em;
+            line-height: 1.8;
         }
         table {
             width: 100%;
@@ -123,27 +124,27 @@
             </div>
             <hr>
             <div class="form-group">
-                <label for="monthly-contribution-pre">退職までの毎月の積立額</label>
+                <label for="monthly-contribution-pre">休職開始までの毎月の積立額</label>
                 <input type="number" id="monthly-contribution-pre" value="30"><span class="unit">万円</span>
             </div>
             <div class="form-group">
-                <label>REST_FIRST</label>
+                <label>休職開始年齢</label>
                 <div class="age-input">
-                    <input type="number" id="retirement-age-year" value="40"><span class="unit">歳</span>
-                    <input type="number" id="retirement-age-month" value="6"><span class="unit">ヶ月</span>
+                    <input type="number" id="leave-start-age-year" value="40"><span class="unit">歳</span>
+                    <input type="number" id="leave-start-age-month" value="6"><span class="unit">ヶ月</span>
                 </div>
             </div>
             <hr>
             <div class="form-group">
-                <label for="post-retirement-duration">退職後の積立期間</label>
-                <input type="number" id="post-retirement-duration" value="3"><span class="unit">年間</span>
+                <label for="leave-duration">休職期間</label>
+                <input type="number" id="leave-duration" value="3"><span class="unit">年間</span>
             </div>
             <div class="form-group">
-                <label for="monthly-contribution-post">上記期間の毎月の積立額</label>
-                <input type="number" id="monthly-contribution-post" value="15"><span class="unit">万円</span>
+                <label for="monthly-contribution-leave">休職期間中の毎月の積立額</label>
+                <input type="number" id="monthly-contribution-leave" value="15"><span class="unit">万円</span>
             </div>
             <div class="form-group">
-                <label for="living-cost">退職後の毎月の生活費</label>
+                <label for="living-cost">休職期間以降の毎月の生活費</label>
                 <input type="number" id="living-cost" value="25"><span class="unit">万円</span>
             </div>
             <hr>
@@ -185,11 +186,11 @@
         const currentAgeMonth = parseInt(document.getElementById('current-age-month').value);
         
         const contributionPre = parseFloat(document.getElementById('monthly-contribution-pre').value) * 10000;
-        const retirementAgeYear = parseInt(document.getElementById('retirement-age-year').value);
-        const retirementAgeMonth = parseInt(document.getElementById('retirement-age-month').value);
+        const leaveStartAgeYear = parseInt(document.getElementById('leave-start-age-year').value);
+        const leaveStartAgeMonth = parseInt(document.getElementById('leave-start-age-month').value);
 
-        const postRetirementDuration = parseInt(document.getElementById('post-retirement-duration').value);
-        const contributionPost = parseFloat(document.getElementById('monthly-contribution-post').value) * 10000;
+        const leaveDuration = parseInt(document.getElementById('leave-duration').value);
+        const contributionLeave = parseFloat(document.getElementById('monthly-contribution-leave').value) * 10000;
         const livingCost = parseFloat(document.getElementById('living-cost').value) * 10000;
         
         const annualRate = parseFloat(document.getElementById('annual-interest-rate').value) / 100;
@@ -197,33 +198,39 @@
 
         // --- 月単位に変換 ---
         const startMonth = currentAgeYear * 12 + currentAgeMonth;
-        const retirementMonth = retirementAgeYear * 12 + retirementAgeMonth;
-        const postContributionEndMonth = retirementMonth + postRetirementDuration * 12;
+        const leaveStartMonth = leaveStartAgeYear * 12 + leaveStartAgeMonth;
+        const fireStartMonth = leaveStartMonth + leaveDuration * 12; // 休職終了 = FIRE開始月
 
         // --- シミュレーション計算 ---
         let currentAsset = initialAsset;
         let history = [{ age: startMonth, asset: currentAsset }];
-        let assetAtRetirement = 0;
+        let assetAtLeaveStart = 0;
+        let assetAtFireStart = 0;
 
         for (let month = startMonth; month < 100 * 12; month++) { // 100歳までシミュレーション
             const interest = currentAsset * monthlyRate;
             let monthlyChange = interest;
 
-            if (month < retirementMonth) {
-                // 退職前
+            if (month < leaveStartMonth) {
+                // 休職前
                 monthlyChange += contributionPre;
             } else {
-                // 退職後
-                if (month < postContributionEndMonth) {
-                    monthlyChange += contributionPost;
+                // 休職開始後
+                if (month < fireStartMonth) {
+                    // 休職期間中
+                    monthlyChange += contributionLeave;
                 }
+                // 休職期間中とFIRE後、両方で生活費を引き出す
                 monthlyChange -= livingCost;
             }
             
             currentAsset += monthlyChange;
 
-            if (month === retirementMonth) {
-                assetAtRetirement = currentAsset;
+            if (month === leaveStartMonth) {
+                assetAtLeaveStart = currentAsset;
+            }
+            if (month === fireStartMonth) {
+                assetAtFireStart = currentAsset;
             }
 
             // 資産が0になったら終了
@@ -237,15 +244,23 @@
         }
 
         // --- 結果の表示 ---
-        displaySummary(assetAtRetirement, history, retirementAgeYear, retirementAgeMonth);
+        displaySummary(assetAtLeaveStart, assetAtFireStart, history, leaveStartMonth, fireStartMonth);
         displayTable(history, startMonth);
-        displayChart(history, retirementMonth, startMonth);
+        displayChart(history, leaveStartMonth, startMonth);
     }
 
-    function displaySummary(assetAtRetirement, history, retYear, retMonth) {
+    function displaySummary(assetAtLeaveStart, assetAtFireStart, history, leaveStartMonthTotal, fireStartMonthTotal) {
         const summaryDiv = document.getElementById('summary');
         const lastData = history[history.length - 1];
-        let summaryText = `退職時 (${retYear}歳 ${retMonth}ヶ月) の資産額: <strong class="highlight">${(assetAtRetirement / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 0 })} 万円</strong>`;
+
+        // 年齢と月を計算
+        const leaveStartYear = Math.floor(leaveStartMonthTotal / 12);
+        const leaveStartMonth = leaveStartMonthTotal % 12;
+        const fireStartYear = Math.floor(fireStartMonthTotal / 12);
+        const fireStartMonth = fireStartMonthTotal % 12;
+
+        let summaryText = `休職開始時 (${leaveStartYear}歳 ${leaveStartMonth}ヶ月) の資産額: <strong class="highlight">${(assetAtLeaveStart / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 0 })} 万円</strong>`;
+        summaryText += `<br>休職終了(FIRE開始)時 (${fireStartYear}歳 ${fireStartMonth}ヶ月) の資産額: <strong class="highlight">${(assetAtFireStart / 10000).toLocaleString('ja-JP', { maximumFractionDigits: 0 })} 万円</strong>`;
 
         if (lastData.asset <= 0) {
             const ageYear = Math.floor(lastData.age / 12);
@@ -287,7 +302,7 @@
         });
     }
 
-    function displayChart(history, retirementMonth, startMonth) {
+    function displayChart(history, leaveStartMonth, startMonth) {
         const ctx = document.getElementById('asset-chart').getContext('2d');
         
         const labels = history.filter(d => (d.age % 12 === startMonth % 12)).map(d => `${Math.floor(d.age / 12)}歳`);
@@ -356,5 +371,4 @@
 </script>
 
 </body>
-
 </html>
