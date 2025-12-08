@@ -2,169 +2,106 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>nonemu0601 / portal</title>
+<title>Files</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-:root {
-  --bg1: #050816;
-  --bg2: #0b182a;
-  --accent: #58a6ff;
-  --accent-soft: rgba(88,166,255,0.2);
-  --card-bg: rgba(15,23,42,0.7);
-  --card-border: rgba(148,163,184,0.4);
-  --text-main: #e5e7eb;
-  --text-sub: #9ca3af;
-}
-
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
-  min-height: 100vh;
+  background: #0b0f14;
+  color: #c9d1d9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text-main);
-  background: radial-gradient(circle at top left, #111827 0, #020617 45%, #000 100%);
-  overflow-x: hidden;
 }
 
-/* 背景アニメーション */
-.bg-orbit {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.orbit {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(40px);
-  opacity: 0.6;
-  mix-blend-mode: screen;
-  animation: drift 22s infinite alternate ease-in-out;
-}
-
-.orbit:nth-child(1) {
-  width: 420px;
-  height: 420px;
-  background: #1d4ed8;
-  top: -80px;
-  right: -140px;
-}
-
-.orbit:nth-child(2) {
-  width: 320px;
-  height: 320px;
-  background: #a855f7;
-  bottom: -120px;
-  left: -90px;
-  animation-duration: 28s;
-}
-
-.orbit:nth-child(3) {
-  width: 260px;
-  height: 260px;
-  background: #22c55e;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  animation-duration: 26s;
-}
-
-@keyframes drift {
-  0%   { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(40px,-30px,0); }
-}
-
-/* コンテナ */
-.main-wrap {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 32px 18px 40px;
-}
-
-/* ヘッダ */
 header {
-  padding-top: 18px;
-  padding-bottom: 18px;
-}
-
-.title-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  text-align: center;
+  padding: 50px 0 20px;
 }
 
 h1 {
+  font-size: 36px;
   margin: 0;
-  font-size: clamp(28px, 4vw, 34px);
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--accent);
+  color: #7fb4ff;
+  letter-spacing: 1px;
 }
 
-.repo-tag {
-  padding: 3px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(148,163,184,0.5);
-  font-size: 12px;
-  color: var(--text-sub);
-  backdrop-filter: blur(10px);
-  background: rgba(15,23,42,0.7);
-}
-
-.subtitle {
-  margin-top: 10px;
-  font-size: 13px;
-  color: var(--text-sub);
-}
-
-/* 本体カード */
-.panel {
-  margin-top: 22px;
-  border-radius: 22px;
-  padding: 20px 20px 26px;
-  background: linear-gradient(135deg, rgba(15,23,42,0.9), rgba(15,23,42,0.82));
-  border: 1px solid rgba(148,163,184,0.5);
-  box-shadow:
-    0 18px 55px rgba(0,0,0,0.75),
-    0 0 0 1px rgba(15,23,42,1);
-  backdrop-filter: blur(18px);
-}
-
-/* 軽いヘッダ行 */
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-
-.badge-count {
-  font-size: 12px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-/* グリッド */
 #file-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-  gap: 14px;
-  marg
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 28px;
+  padding: 40px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  background: linear-gradient(145deg, #11161d, #0a0d12);
+  border: 1px solid #2a2f36;
+  padding: 22px;
+  border-radius: 14px;
+  text-align: center;
+  transition: 0.25s ease;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+
+.card:hover {
+  background: linear-gradient(145deg, #161d27, #0f141b);
+  transform: translateY(-6px) scale(1.02);
+  border-color: #5ea1ff;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.45);
+}
+
+.card a {
+  text-decoration: none;
+  color: #e3e9ef;
+  font-size: 19px;
+  letter-spacing: 0.5px;
+}
+
+.fadein {
+  opacity: 0;
+  animation: fadein 0.8s forwards;
+}
+
+@keyframes fadein {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>File List</h1>
+</header>
+
+<div id="file-list"></div>
+
+<script>
+const owner = "nonemu0601";
+const repo  = "nonemu0601.github.io";
+const branch = "main";
+
+const api = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+
+fetch(api)
+  .then(res => res.json())
+  .then(files => {
+    const list = document.getElementById("file-list");
+    files.forEach(f => {
+      if (f.type === "file") {
+        const div = document.createElement("div");
+        div.className = "card fadein";
+        const a = document.createElement("a");
+        a.href = f.name;
+        a.textContent = f.name;
+        div.appendChild(a);
+        list.appendChild(div);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
