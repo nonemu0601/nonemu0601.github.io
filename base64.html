@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Image Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            color: #444;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            box-sizing: border-box; /* パディングを含める */
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #viewBtn {
+            background-color: #007bff;
+            color: white;
+            flex-grow: 1;
+        }
+        #viewBtn:hover {
+            background-color: #0056b3;
+        }
+        #clearBtn {
+            background-color: #6c757d;
+            color: white;
+        }
+        #clearBtn:hover {
+            background-color: #545b62;
+        }
+        #imageContainer {
+            text-align: center;
+            min-height: 200px;
+            border: 2px dashed #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fafafa;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        img {
+            max-width: 100%;
+            max-height: 600px;
+            display: none; /* 初期状態は非表示 */
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .placeholder {
+            color: #999;
+            pointer-events: none;
+        }
+        .error-msg {
+            color: #dc3545;
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Base64 Image Viewer</h1>
+    
+    <div class="input-group">
+        <textarea id="base64Input" placeholder="ここにBase64文字列を貼り付けてください... (例: iVBORw0KGgo...)"></textarea>
+    </div>
+
+    <div class="controls">
+        <button id="viewBtn" onclick="showImage()">画像を表示</button>
+        <button id="clearBtn" onclick="clearInput()">クリア</button>
+    </div>
+
+    <p id="errorMsg" class="error-msg">画像を表示できませんでした。Base64文字列が正しいか確認してください。</p>
+
+    <div id="imageContainer">
+        <span class="placeholder" id="placeholderText">ここに画像が表示されます</span>
+        <img id="resultImage" alt="Decoded Image" />
+    </div>
+</div>
+
+<script>
+    function showImage() {
+        const input = document.getElementById('base64Input').value.trim();
+        const img = document.getElementById('resultImage');
+        const placeholder = document.getElementById('placeholderText');
+        const errorMsg = document.getElementById('errorMsg');
+
+        // リセット
+        img.style.display = 'none';
+        errorMsg.style.display = 'none';
+        placeholder.style.display = 'block';
+
+        if (!input) return;
+
+        let src = input;
+
+        // "data:image..." のヘッダーがない場合、自動で付与する (PNGをデフォルトと仮定)
+        // もしJPEGなどを扱う場合は、ユーザーがヘッダー付きで貼り付けるか、ここで判別ロジックを追加する必要がありますが、
+        // 多くのブラウザはMIMEタイプが多少違っても表示してくれます。
+        if (!input.startsWith('data:image')) {
+            // ダブルクォートなどが混ざっている場合の簡単な除去（APIレスポンスからコピーした場合など）
+            const cleanInput = input.replace(/["']/g, '');
+            src = `data:image/png;base64,${cleanInput}`;
+        }
+
+        img.onload = function() {
+            img.style.display = 'block';
+            placeholder.style.display = 'none';
+            errorMsg.style.display = 'none';
+        };
+
+        img.onerror = function() {
+            img.style.display = 'none';
+            placeholder.style.display = 'block';
+            errorMsg.style.display = 'block';
+            errorMsg.textContent = "無効な画像データです。コピー範囲を確認してください。";
+        };
+
+        img.src = src;
+    }
+
+    function clearInput() {
+        document.getElementById('base64Input').value = '';
+        document.getElementById('resultImage').style.display = 'none';
+        document.getElementById('placeholderText').style.display = 'block';
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('resultImage').src = '';
+    }
+</script>
+
+</body>
+</html>
