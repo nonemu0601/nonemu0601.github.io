@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>File List</title>
+</head>
+<body>
+<h1>File List</h1>
+<ul id="file-list"></ul>
+
+<script>
+const owner = "nonemu0601";
+const repo  = "nonemu0601.github.io";
+const branch = "main";
+
+const api = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
+
+fetch(api)
+  .then(res => res.json())
+  .then(files => {
+    const list = document.getElementById("file-list");
+
+    files.forEach(f => {
+      if (f.type === "file") {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = f.name;
+        a.textContent = f.name;
+        li.appendChild(a);
+        list.appendChild(li);
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
