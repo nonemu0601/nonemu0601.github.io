@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万葉集学習ノート</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .card.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .volume-section {
+            margin-bottom: 30px;
+        }
+
+        .volume-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .volume-count {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .poem-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .poem-number {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .poem-text {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            padding-right: 80px;
+        }
+
+        .poem-meaning {
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .poem-author {
+            color: #667eea;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 18px;
+        }
+
+        .success-message {
+            background: #2ecc71;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📖 万葉集学習ノート</h1>
+
+        <div class="mode-tabs">
+            <button class="tab-btn active" onclick="switchMode('add')">追加</button>
+            <button class="tab-btn" onclick="switchMode('view')">一覧</button>
+        </div>
+
+        <div id="addMode" class="card active">
+            <div id="successMessage" class="success-message">歌を記録しました！</div>
+            <form id="poemForm">
+                <div class="form-group">
+                    <label for="number">歌番号（例: 1-20）</label>
+                    <input type="text" id="number" placeholder="巻-番号（例: 1-20）" required pattern="[0-9]+-[0-9]+">
+                </div>
+
+                <div class="form-group">
+                    <label for="poem">歌</label>
+                    <textarea id="poem" placeholder="例: 春過ぎて 夏来にけらし 白妙の 衣干すてふ 天の香具山" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="meaning">意味・現代語訳</label>
+                    <textarea id="meaning" placeholder="この歌の意味を入力" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="author">作者</label>
+                    <input type="text" id="author" placeholder="例: 持統天皇" required>
+                </div>
+
+                <button type="submit">記録する</button>
+            </form>
+        </div>
+
+        <div id="viewMode" class="card">
+            <div id="poemList"></div>
+        </div>
+    </div>
+
+    <script>
+        let poems = [];
+        let currentMode = 'add';
+
+        function loadPoems() {
+            const saved = localStorage.getItem('manyoshuPoems');
+            if (saved) {
+                poems = JSON.parse(saved);
+                displayPoems();
+            }
+        }
+
+        function savePoems() {
+            localStorage.setItem('manyoshuPoems', JSON.stringify(poems));
+        }
+
+        function parseNumber(numStr) {
+            const parts = numStr.split('-');
+            return {
+                volume: parseInt(parts[0]),
+                number: parseInt(parts[1]),
+                original: numStr
+            };
+        }
+
+        function sortPoems() {
+            poems.sort((a, b) => {
+                const aNum = parseNumber(a.number);
+                const bNum = parseNumber(b.number);
+                
+                if (aNum.volume !== bNum.volume) {
+                    return aNum.volume - bNum.volume;
+                }
+                return aNum.number - bNum.number;
+            });
+        }
+
+        function groupByVolume() {
+            const groups = {};
+            poems.forEach(poem => {
+                const parsed = parseNumber(poem.number);
+                const vol = parsed.volume;
+                if (!groups[vol]) {
+                    groups[vol] = [];
+                }
+                groups[vol].push(poem);
+            });
+            return groups;
+        }
+
+        function displayPoems() {
+            const list = document.getElementById('poemList');
+            
+            if (poems.length === 0) {
+                list.innerHTML = '<div class="empty-state">まだ歌が記録されていません</div>';
+                return;
+            }
+
+            sortPoems();
+            const groups = groupByVolume();
+            
+            let html = '';
+            Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b)).forEach(vol => {
+                const volumePoems = groups[vol];
+                html += `
+                    <div class="volume-section">
+                        <div class="volume-header">
+                            <span>巻第${vol}</span>
+                            <span class="volume-count">${volumePoems.length}首</span>
+                        </div>
+                        ${volumePoems.map((poem, index) => `
+                            <div class="poem-item">
+                                <div class="poem-number">${poem.number}</div>
+                                <div class="poem-text">${poem.poem}</div>
+                                <div class="poem-meaning">【意味】${poem.meaning}</div>
+                                <div class="poem-author">作者: ${poem.author}</div>
+                                <button class="delete-btn" onclick="deletePoem('${poem.number}')">削除</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            list.innerHTML = html;
+        }
+
+        function deletePoem(number) {
+            poems = poems.filter(p => p.number !== number);
+            savePoems();
+            displayPoems();
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            if (mode === 'add') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('addMode').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('viewMode').classList.add('active');
+                displayPoems();
+            }
+        }
+
+        document.getElementById('poemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newPoem = {
+                number: document.getElementById('number').value,
+                poem: document.getElementById('poem').value,
+                meaning: document.getElementById('meaning').value,
+                author: document.getElementById('author').value
+            };
+
+            poems.push(newPoem);
+            savePoems();
+
+            this.reset();
+            
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 2000);
+        });
+
+        loadPoems();
+    </script>
+</body>
+</html>
