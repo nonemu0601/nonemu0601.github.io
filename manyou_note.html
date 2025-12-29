@@ -230,6 +230,15 @@
             <button class="tab-btn active" onclick="switchMode('add')">追加</button>
             <button class="tab-btn" onclick="switchMode('view')">一覧</button>
         </div>
+		
+		<div id="viewMode" class="card">
+			<div style="margin-bottom: 20px; display: flex; gap: 10px;">
+				<button onclick="exportToJson()" style="background: #27ae60; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">JSONとして保存</button>
+				<button onclick="document.getElementById('importFile').click()" style="background: #2980b9; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">ファイルから読み込み</button>
+				<input type="file" id="importFile" style="display: none" accept=".json" onchange="importFromJson(event)">
+			</div>
+			<div id="poemList"></div>
+		</div>
 
         <div id="addMode" class="card active">
             <div id="successMessage" class="success-message">歌を記録しました！</div>
@@ -299,6 +308,51 @@
                 return aNum.number - bNum.number;
             });
         }
+		
+		// --- データの書き出し（エクスポート） ---
+		function exportToJson() {
+			if (poems.length === 0) {
+				alert("保存するデータがありません。");
+				return;
+			}
+			// JSON文字列に変換
+			const dataStr = JSON.stringify(poems, null, 2);
+			// ダウンロード用のBlob（塊）を作成
+			const blob = new Blob([dataStr], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			
+			// 一時的なリンクを作ってクリックさせる
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = 'manyoshu_backup.json'; // 保存されるファイル名
+			link.click();
+			
+			URL.revokeObjectURL(url); // メモリ解放
+		}
+
+		// --- データの読み込み（インポート） ---
+		function importFromJson(event) {
+			const file = event.target.files[0];
+			if (!file) return;
+
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				try {
+					const importedData = JSON.parse(e.target.result);
+					if (Array.isArray(importedData)) {
+						if (confirm("現在のデータを上書きしてよろしいですか？")) {
+							poems = importedData;
+							savePoems(); // localStorageへ保存
+							displayPoems(); // 画面更新
+							alert("読み込みが完了しました！");
+						}
+					}
+				} catch (err) {
+					alert("ファイルの形式が正しくありません。");
+				}
+			};
+			reader.readAsText(file);
+		}
 
         function groupByVolume() {
             const groups = {};
