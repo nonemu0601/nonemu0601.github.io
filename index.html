@@ -2,78 +2,180 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Files</title>
+<title>File Repository</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-body {
-  margin: 0;
-  background: #0b0f14;
-  color: #c9d1d9;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
+    :root {
+        --bg-color: #0f1115;
+        --card-bg: rgba(30, 35, 45, 0.6);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-hover-border: rgba(100, 180, 255, 0.5);
+        --text-main: #e2e8f0;
+        --text-muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent-glow: rgba(56, 189, 248, 0.15);
+    }
 
-header {
-  text-align: center;
-  padding: 50px 0 20px;
-}
+    body {
+        margin: 0;
+        background-color: var(--bg-color);
+        background-image: 
+            radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.08), transparent 25%),
+            radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+        color: var(--text-main);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-h1 {
-  font-size: 36px;
-  margin: 0;
-  color: #7fb4ff;
-  letter-spacing: 1px;
-}
+    header {
+        text-align: center;
+        padding: 80px 20px 40px;
+        width: 100%;
+        max-width: 800px;
+    }
 
-#file-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 28px;
-  padding: 40px;
-  max-width: 1200px;
-  margin: auto;
-}
+    h1 {
+        font-size: 42px;
+        margin: 0 0 10px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 2px 10px rgba(255,255,255,0.1));
+    }
 
-.card {
-  background: linear-gradient(145deg, #11161d, #0a0d12);
-  border: 1px solid #2a2f36;
-  padding: 22px;
-  border-radius: 14px;
-  text-align: center;
-  transition: 0.25s ease;
-  cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-}
+    p.subtitle {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin: 0;
+    }
 
-.card:hover {
-  background: linear-gradient(145deg, #161d27, #0f141b);
-  transform: translateY(-6px) scale(1.02);
-  border-color: #5ea1ff;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.45);
-}
+    #file-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+        padding: 20px 40px 80px;
+        width: 100%;
+        max-width: 1200px;
+        box-sizing: border-box;
+    }
 
-.card a {
-  text-decoration: none;
-  color: #e3e9ef;
-  font-size: 19px;
-  letter-spacing: 0.5px;
-}
+    .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
 
-.fadein {
-  opacity: 0;
-  animation: fadein 0.8s forwards;
-}
+    /* 光沢エフェクト */
+    .card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        z-index: 0;
+        pointer-events: none;
+    }
 
-@keyframes fadein {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+    .card:hover {
+        transform: translateY(-4px);
+        border-color: var(--card-hover-border);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        background: rgba(35, 40, 55, 0.8);
+    }
+
+    .card:hover .icon-box {
+        color: var(--accent);
+        transform: scale(1.1);
+    }
+
+    .icon-box {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        color: var(--text-muted);
+        transition: 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .icon-box svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .file-info {
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .file-name {
+        display: block;
+        color: var(--text-main);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 15px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+    }
+
+    .file-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: block;
+    }
+
+    /* Animation */
+    .fadein {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadein 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    @keyframes fadein {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 600px) {
+        #file-list {
+            grid-template-columns: 1fr;
+            padding: 20px;
+        }
+        h1 { font-size: 32px; }
+    }
 </style>
 </head>
 
 <body>
+
 <header>
-  <h1>File List</h1>
+    <h1>File Repository</h1>
+    <p class="subtitle">nonemu0601.github.io</p>
 </header>
 
 <div id="file-list"></div>
@@ -85,21 +187,45 @@ const branch = "main";
 
 const api = `https://api.github.com/repos/${owner}/${repo}/contents/?ref=${branch}`;
 
+// File Icon SVG
+const fileIconSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+</svg>`;
+
 fetch(api)
   .then(res => res.json())
   .then(files => {
     const list = document.getElementById("file-list");
+    let delayCounter = 0;
+
     files.forEach(f => {
-      if (f.type === "file") {
-        const div = document.createElement("div");
-        div.className = "card fadein";
+      // index.html を除外、かつファイルタイプのみ
+      if (f.type === "file" && f.name !== "index.html") {
+        
         const a = document.createElement("a");
         a.href = f.name;
-        a.textContent = f.name;
-        div.appendChild(a);
-        list.appendChild(div);
+        a.className = "card fadein";
+        // アニメーションを少しずつ遅らせる
+        a.style.animationDelay = `${delayCounter * 0.05}s`;
+
+        // 構造: Icon + Info
+        a.innerHTML = `
+            <div class="icon-box">${fileIconSvg}</div>
+            <div class="file-info">
+                <span class="file-name" title="${f.name}">${f.name}</span>
+                <span class="file-meta">FILE</span>
+            </div>
+        `;
+
+        list.appendChild(a);
+        delayCounter++;
       }
     });
+  })
+  .catch(err => {
+      console.error(err);
+      document.getElementById("file-list").innerHTML = `<p style="text-align:center; color: #ef4444;">Failed to load files.</p>`;
   });
 </script>
 
