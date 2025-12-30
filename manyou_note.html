@@ -82,6 +82,13 @@
             color: #333;
         }
 
+        .label-optional {
+            font-size: 0.85em;
+            color: #888;
+            font-weight: normal;
+            margin-left: 5px;
+        }
+
         input[type="text"],
         textarea {
             width: 100%;
@@ -104,7 +111,13 @@
             font-family: inherit;
         }
 
-        button[type="submit"] {
+        /* ボタン群のスタイル */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button.primary-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -117,9 +130,26 @@
             width: 100%;
         }
 
-        button[type="submit"]:hover {
+        button.primary-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button.cancel-btn {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            display: none; /* デフォルトは非表示 */
+        }
+        
+        button.cancel-btn.show {
+            display: block;
         }
 
         .volume-section {
@@ -165,12 +195,19 @@
             font-weight: bold;
         }
 
+        /* 改行対応のためのスタイル */
+        .poem-text, .poem-meaning, .poem-note {
+            white-space: pre-wrap; /* 改行を反映 */
+            word-wrap: break-word;
+        }
+
         .poem-text {
             font-size: 18px;
             line-height: 1.8;
             margin-bottom: 15px;
             color: #2c3e50;
             padding-right: 80px;
+            font-weight: bold;
         }
 
         .poem-meaning {
@@ -179,10 +216,43 @@
             line-height: 1.6;
         }
 
+        .poem-note {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px dashed #ccc;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
         .poem-author {
             color: #667eea;
             font-weight: bold;
             margin-top: 10px;
+            text-align: right;
+        }
+
+        .action-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .edit-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .edit-btn:hover {
+            background: #d35400;
         }
 
         .delete-btn {
@@ -192,7 +262,6 @@
             padding: 8px 20px;
             border-radius: 6px;
             font-size: 14px;
-            margin-top: 10px;
             cursor: pointer;
             transition: background 0.2s;
         }
@@ -215,6 +284,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            text-align: center;
         }
 
         .success-message.show {
@@ -227,47 +297,53 @@
         <h1>📖 万葉集学習ノート</h1>
 
         <div class="mode-tabs">
-            <button class="tab-btn active" onclick="switchMode('add')">追加</button>
-            <button class="tab-btn" onclick="switchMode('view')">一覧</button>
+            <button class="tab-btn active" id="tab-add" onclick="switchMode('add')">追加</button>
+            <button class="tab-btn" id="tab-view" onclick="switchMode('view')">一覧</button>
         </div>
-		
-		<div id="viewMode" class="card">
-			<div style="margin-bottom: 20px; display: flex; gap: 10px;">
-				<button onclick="exportToJson()" style="background: #27ae60; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">JSONとして保存</button>
-				<button onclick="document.getElementById('importFile').click()" style="background: #2980b9; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">ファイルから読み込み</button>
-				<input type="file" id="importFile" style="display: none" accept=".json" onchange="importFromJson(event)">
-			</div>
-			<div id="poemList"></div>
-		</div>
-
+        
         <div id="addMode" class="card active">
             <div id="successMessage" class="success-message">歌を記録しました！</div>
             <form id="poemForm">
+                <input type="hidden" id="editTarget" value="">
+
                 <div class="form-group">
-                    <label for="number">歌番号（例: 1-20）</label>
+                    <label for="number">歌番号 <span style="color:red; font-size:0.8em;">(必須)</span></label>
                     <input type="text" id="number" placeholder="巻-番号（例: 1-20）" required pattern="[0-9]+-[0-9]+">
                 </div>
 
                 <div class="form-group">
-                    <label for="poem">歌</label>
-                    <textarea id="poem" placeholder="例: 春過ぎて 夏来にけらし 白妙の 衣干すてふ 天の香具山" required></textarea>
+                    <label for="poem">歌 <span class="label-optional">(任意)</span></label>
+                    <textarea id="poem" placeholder="例: 春過ぎて 夏来にけらし 白妙の 衣干すてふ 天の香具山"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="meaning">意味・現代語訳</label>
-                    <textarea id="meaning" placeholder="この歌の意味を入力" required></textarea>
+                    <label for="meaning">意味・現代語訳 <span class="label-optional">(任意)</span></label>
+                    <textarea id="meaning" placeholder="この歌の意味を入力"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="author">作者</label>
-                    <input type="text" id="author" placeholder="例: 持統天皇" required>
+                    <label for="note">解説・技法・背景 <span class="label-optional">(任意)</span></label>
+                    <textarea id="note" placeholder="例: 「白妙の」は枕詞。持統天皇が即位した後の歌..."></textarea>
                 </div>
 
-                <button type="submit">記録する</button>
+                <div class="form-group">
+                    <label for="author">作者 <span class="label-optional">(任意)</span></label>
+                    <input type="text" id="author" placeholder="例: 持統天皇">
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" id="cancelBtn" class="cancel-btn" onclick="cancelEdit()">キャンセル</button>
+                    <button type="submit" id="submitBtn" class="primary-btn">記録する</button>
+                </div>
             </form>
         </div>
 
         <div id="viewMode" class="card">
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="exportToJson()" style="background: #27ae60; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">JSONとして保存</button>
+                <button onclick="document.getElementById('importFile').click()" style="background: #2980b9; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">ファイルから読み込み</button>
+                <input type="file" id="importFile" style="display: none" accept=".json" onchange="importFromJson(event)">
+            </div>
             <div id="poemList"></div>
         </div>
     </div>
@@ -280,6 +356,8 @@
             const saved = localStorage.getItem('manyoshuPoems');
             if (saved) {
                 poems = JSON.parse(saved);
+                // 後方互換性のため、古いデータにnoteがない場合は空文字を追加
+                poems = poems.map(p => ({ note: '', ...p }));
                 displayPoems();
             }
         }
@@ -308,51 +386,49 @@
                 return aNum.number - bNum.number;
             });
         }
-		
-		// --- データの書き出し（エクスポート） ---
-		function exportToJson() {
-			if (poems.length === 0) {
-				alert("保存するデータがありません。");
-				return;
-			}
-			// JSON文字列に変換
-			const dataStr = JSON.stringify(poems, null, 2);
-			// ダウンロード用のBlob（塊）を作成
-			const blob = new Blob([dataStr], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			
-			// 一時的なリンクを作ってクリックさせる
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = 'manyoshu_backup.json'; // 保存されるファイル名
-			link.click();
-			
-			URL.revokeObjectURL(url); // メモリ解放
-		}
+        
+        // --- データの書き出し（エクスポート） ---
+        function exportToJson() {
+            if (poems.length === 0) {
+                alert("保存するデータがありません。");
+                return;
+            }
+            const dataStr = JSON.stringify(poems, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `manyoshu_backup_${new Date().toISOString().slice(0,10)}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
 
-		// --- データの読み込み（インポート） ---
-		function importFromJson(event) {
-			const file = event.target.files[0];
-			if (!file) return;
+        // --- データの読み込み（インポート） ---
+        function importFromJson(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-			const reader = new FileReader();
-			reader.onload = function(e) {
-				try {
-					const importedData = JSON.parse(e.target.result);
-					if (Array.isArray(importedData)) {
-						if (confirm("現在のデータを上書きしてよろしいですか？")) {
-							poems = importedData;
-							savePoems(); // localStorageへ保存
-							displayPoems(); // 画面更新
-							alert("読み込みが完了しました！");
-						}
-					}
-				} catch (err) {
-					alert("ファイルの形式が正しくありません。");
-				}
-			};
-			reader.readAsText(file);
-		}
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData)) {
+                        if (confirm("現在のデータを上書きしてよろしいですか？")) {
+                            poems = importedData;
+                            savePoems();
+                            displayPoems();
+                            alert("読み込みが完了しました！");
+                        }
+                    }
+                } catch (err) {
+                    alert("ファイルの形式が正しくありません。");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset input
+        }
 
         function groupByVolume() {
             const groups = {};
@@ -387,13 +463,18 @@
                             <span>巻第${vol}</span>
                             <span class="volume-count">${volumePoems.length}首</span>
                         </div>
-                        ${volumePoems.map((poem, index) => `
+                        ${volumePoems.map((poem) => `
                             <div class="poem-item">
                                 <div class="poem-number">${poem.number}</div>
-                                <div class="poem-text">${poem.poem}</div>
-                                <div class="poem-meaning">【意味】${poem.meaning}</div>
-                                <div class="poem-author">作者: ${poem.author}</div>
-                                <button class="delete-btn" onclick="deletePoem('${poem.number}')">削除</button>
+                                ${poem.poem ? `<div class="poem-text">${poem.poem}</div>` : ''}
+                                ${poem.meaning ? `<div class="poem-meaning">【意味】<br>${poem.meaning}</div>` : ''}
+                                ${poem.note ? `<div class="poem-note"><strong>解説・メモ：</strong><br>${poem.note}</div>` : ''}
+                                ${poem.author ? `<div class="poem-author">作者: ${poem.author}</div>` : ''}
+                                
+                                <div class="action-buttons">
+                                    <button class="edit-btn" onclick="editPoem('${poem.number}')">編集</button>
+                                    <button class="delete-btn" onclick="deletePoem('${poem.number}')">削除</button>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -404,9 +485,44 @@
         }
 
         function deletePoem(number) {
-            poems = poems.filter(p => p.number !== number);
-            savePoems();
-            displayPoems();
+            if(confirm('この歌を削除しますか？')) {
+                poems = poems.filter(p => p.number !== number);
+                savePoems();
+                displayPoems();
+            }
+        }
+
+        // --- 編集機能 ---
+        function editPoem(number) {
+            const poem = poems.find(p => p.number === number);
+            if (!poem) return;
+
+            // フォームに値をセット
+            document.getElementById('number').value = poem.number;
+            document.getElementById('poem').value = poem.poem || '';
+            document.getElementById('meaning').value = poem.meaning || '';
+            document.getElementById('note').value = poem.note || '';
+            document.getElementById('author').value = poem.author || '';
+            
+            // 編集モードの設定
+            document.getElementById('editTarget').value = poem.number;
+            document.getElementById('submitBtn').innerText = '更新する';
+            document.getElementById('cancelBtn').classList.add('show');
+            
+            // タブを切り替え
+            switchMode('add');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('poemForm').reset();
+            document.getElementById('editTarget').value = '';
+            document.getElementById('submitBtn').innerText = '記録する';
+            document.getElementById('cancelBtn').classList.remove('show');
         }
 
         function switchMode(mode) {
@@ -420,10 +536,10 @@
             });
             
             if (mode === 'add') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-add').classList.add('active');
                 document.getElementById('addMode').classList.add('active');
             } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-view').classList.add('active');
                 document.getElementById('viewMode').classList.add('active');
                 displayPoems();
             }
@@ -432,17 +548,40 @@
         document.getElementById('poemForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            const numberInput = document.getElementById('number').value;
+            const editTarget = document.getElementById('editTarget').value;
+            
             const newPoem = {
-                number: document.getElementById('number').value,
+                number: numberInput,
                 poem: document.getElementById('poem').value,
                 meaning: document.getElementById('meaning').value,
+                note: document.getElementById('note').value,
                 author: document.getElementById('author').value
             };
 
-            poems.push(newPoem);
-            savePoems();
+            // 編集（更新）の場合
+            if (editTarget) {
+                // 元の番号のデータを削除して新しいデータを追加（番号変更に対応するため）
+                poems = poems.filter(p => p.number !== editTarget);
+                poems.push(newPoem);
+                document.getElementById('successMessage').innerText = '歌を更新しました！';
+            } 
+            // 新規作成の場合
+            else {
+                // 番号の重複チェック
+                const exists = poems.some(p => p.number === newPoem.number);
+                if (exists) {
+                    if(!confirm('既に同じ番号の歌が存在します。上書きしますか？')) {
+                        return;
+                    }
+                    poems = poems.filter(p => p.number !== newPoem.number);
+                }
+                poems.push(newPoem);
+                document.getElementById('successMessage').innerText = '歌を記録しました！';
+            }
 
-            this.reset();
+            savePoems();
+            resetForm();
             
             const msg = document.getElementById('successMessage');
             msg.classList.add('show');
